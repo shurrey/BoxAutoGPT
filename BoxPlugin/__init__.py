@@ -36,14 +36,40 @@ class BoxPlugin(AutoGPTPluginTemplate):
             self.box_client_secret is not None and
             self.box_client_secret is not None
         ):
-            auth = OAuth2(
+            self.auth = OAuth2(
                 client_id=self.box_client_id,
                 client_secret=self.box_client_secret,
                 access_token=self.box_developer_token,
             )
-            self.client = Client(auth)
+            self.client = Client(self.auth)
         else:
             print("Box configuration not found in .env file.")
+
+    def post_prompt(self, prompt: PromptGenerator) -> PromptGenerator:
+        """This method is called just after the generate_prompt is called,
+            but actually before the prompt is generated.
+
+        Args:
+            prompt (PromptGenerator): The prompt generator.
+
+        Returns:
+            PromptGenerator: The prompt generator.
+        """
+        if self.client:
+            from .box import _box_folder_query
+
+            prompt.add_resource("""
+                Ability to interact with Box via the BoxPlugin. Information for the BoxPlugin: 
+                Anytime you see the work box or Box, use this plugin. 
+            """)
+
+            prompt.add_command(
+                "_box_folder_query",
+                "Use the Box Plugin to ask Box questions",
+                {"query": "<query>"},
+                _box_folder_query,
+            )
+        return prompt
 
     def can_handle_on_response(self) -> bool:
         """This method is called to check that the plugin can
@@ -65,26 +91,6 @@ class BoxPlugin(AutoGPTPluginTemplate):
             bool: True if the plugin can handle the post_prompt method."""
         return True
 
-    def post_prompt(self, prompt: PromptGenerator) -> PromptGenerator:
-        """This method is called just after the generate_prompt is called,
-            but actually before the prompt is generated.
-
-        Args:
-            prompt (PromptGenerator): The prompt generator.
-
-        Returns:
-            PromptGenerator: The prompt generator.
-        """
-        if self.client:
-            from .box import _box_folder_query
-
-            prompt.add_command(
-                "ask box",
-                self._description,
-                {"query": "<query>"},
-                _box_folder_query,
-            )
-        return prompt
 
     def can_handle_on_planning(self) -> bool:
         """This method is called to check that the plugin can
