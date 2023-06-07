@@ -27,3 +27,15 @@ A Box plug-in for Auto-GPT
    ```
 
    If the plugin is not allowlisted, you will be warned before it's loaded.
+
+6. **Configure .env in AutoGPT:**
+   Add your Box App configuration to the bottom of the  `.env` file.
+
+   ``` shell
+   ################################################################################
+   ### BOX PLUGIN SETTINGS
+   ################################################################################
+   BOX_DEVELOPER_TOKEN=your_developer_token
+   BOX_CLIENT_ID=your_client_id
+   BOX_CLIENT_SECRET=your_client_secret
+   ```
