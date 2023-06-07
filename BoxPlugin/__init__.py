@@ -30,7 +30,7 @@ class BoxPlugin(AutoGPTPluginTemplate):
         self.box_client_id = os.getenv("BOX_CLIENT_ID")
         self.box_client_secret = os.getenv("BOX_CLIENT_SECRET")
 
-        self.api = None
+        self.client = None
         if (
             self.box_developer_token is not None and  
             self.box_client_secret is not None and
@@ -56,19 +56,47 @@ class BoxPlugin(AutoGPTPluginTemplate):
             PromptGenerator: The prompt generator.
         """
         if self.client:
-            from .box import _box_folder_query
+            from .box import (
+                who_am_i,
+                list_box_files,
+                get_content,
+                post_metadata
+            )
 
             prompt.add_resource("""
                 Ability to interact with Box via the BoxPlugin. Information for the BoxPlugin: 
-                Anytime you see the work box or Box, use this plugin. 
+                Anytime you see the word box, use this plugin. 
             """)
 
             prompt.add_command(
-                "_box_folder_query",
-                "Use the Box Plugin to ask Box questions",
+                "who_am_i",
+                "get my user information",
                 {"query": "<query>"},
-                _box_folder_query,
+                who_am_i,
             )
+
+            prompt.add_command(
+                "list_box_files", 
+                "list files in the root folder", 
+                {}, 
+                list_box_files
+            )
+
+            prompt.add_command(
+                "get_content", 
+                "gets the contents of a file.", 
+                {"file_id":"<file_id>"}, 
+                get_content
+            )
+
+            prompt.add_command(
+                "post_metadata", 
+                "posts metadata to the file.", 
+                {"value":"<value>","file_id":"<file_id>"}, 
+                post_metadata
+            )
+
+
         return prompt
 
     def can_handle_on_response(self) -> bool:
